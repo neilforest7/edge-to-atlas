@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Open in ChatGPT Atlas",
+  "version": "0.1.0",
+  "description": "Open the current Microsoft Edge tab in ChatGPT Atlas.",
+  "action": {
+    "default_title": "Open in ChatGPT Atlas"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "activeTab",
+    "nativeMessaging"
+  ]
+}
