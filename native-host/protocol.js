@@ -1,5 +1,5 @@
-const HEADER_BYTES = 4;
-const MAX_MESSAGE_BYTES = 1024 * 1024;
+export const NATIVE_MESSAGE_HEADER_BYTES = 4;
+export const MAX_MESSAGE_BYTES = 1024 * 1024;
 
 export class NativeMessageError extends Error {
   constructor(code, message) {
@@ -11,7 +11,7 @@ export class NativeMessageError extends Error {
 
 export function encodeNativeMessage(message) {
   const body = Buffer.from(JSON.stringify(message), "utf8");
-  const header = Buffer.alloc(HEADER_BYTES);
+  const header = Buffer.alloc(NATIVE_MESSAGE_HEADER_BYTES);
 
   header.writeUInt32LE(body.length, 0);
   return Buffer.concat([header, body]);
@@ -22,7 +22,7 @@ export function decodeNativeMessage(buffer) {
     throw new NativeMessageError("invalid_input", "Native message input must be a Buffer.");
   }
 
-  if (buffer.length < HEADER_BYTES) {
+  if (buffer.length < NATIVE_MESSAGE_HEADER_BYTES) {
     throw new NativeMessageError("incomplete_header", "Native message header is incomplete.");
   }
 
@@ -32,7 +32,7 @@ export function decodeNativeMessage(buffer) {
     throw new NativeMessageError("message_too_large", "Native message exceeds the 1 MB host limit.");
   }
 
-  const expectedLength = HEADER_BYTES + bodyLength;
+  const expectedLength = NATIVE_MESSAGE_HEADER_BYTES + bodyLength;
 
   if (buffer.length < expectedLength) {
     throw new NativeMessageError("incomplete_body", "Native message body is incomplete.");
@@ -43,7 +43,7 @@ export function decodeNativeMessage(buffer) {
   }
 
   try {
-    return JSON.parse(buffer.subarray(HEADER_BYTES).toString("utf8"));
+    return JSON.parse(buffer.subarray(NATIVE_MESSAGE_HEADER_BYTES).toString("utf8"));
   } catch {
     throw new NativeMessageError("invalid_json", "Native message body is not valid JSON.");
   }

@@ -3,10 +3,12 @@ import { mkdtemp, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import {
   HOST_NAME,
   buildNativeHostManifest,
+  getInstallPaths,
   installNativeHost,
   parseInstallArgs,
   renderRunner,
@@ -42,6 +44,15 @@ test("buildNativeHostManifest renders Edge native messaging metadata", () => {
       type: "stdio",
       allowed_origins: [`chrome-extension://${EXTENSION_ID}/`],
     },
+  );
+});
+
+test("getInstallPaths defaults to the repository root, not process cwd", () => {
+  const paths = getInstallPaths({ home: "/Users/example" });
+
+  assert.equal(
+    paths.hostScriptPath,
+    fileURLToPath(new URL("../native-host/host.js", import.meta.url)),
   );
 });
 

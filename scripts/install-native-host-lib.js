@@ -2,6 +2,7 @@ import { access, chmod, mkdir, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 export const HOST_NAME = "com.forest.edge_to_atlas";
 export const EDGE_NATIVE_HOST_RELATIVE_DIR = path.join(
@@ -13,6 +14,7 @@ export const EDGE_NATIVE_HOST_RELATIVE_DIR = path.join(
 export const SUPPORT_RELATIVE_DIR = path.join("Library", "Application Support", "edge-to-atlas");
 
 const EXTENSION_ID_PATTERN = /^[a-p]{32}$/;
+const DEFAULT_PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export function parseInstallArgs(argv) {
   let extensionId;
@@ -52,7 +54,7 @@ export function validateExtensionId(extensionId) {
 
 export function getInstallPaths(options = {}) {
   const home = options.home ?? homedir();
-  const projectRoot = options.projectRoot ?? process.cwd();
+  const projectRoot = options.projectRoot ?? DEFAULT_PROJECT_ROOT;
   const runnerPath = path.join(home, SUPPORT_RELATIVE_DIR, "edge-to-atlas-host");
 
   return {

@@ -2,7 +2,13 @@
 import { pathToFileURL } from "node:url";
 
 import { openInAtlas } from "./atlas-opener.js";
-import { encodeNativeMessage, decodeNativeMessage } from "./protocol.js";
+import {
+  MAX_MESSAGE_BYTES,
+  NATIVE_MESSAGE_HEADER_BYTES,
+  NativeMessageError,
+  decodeNativeMessage,
+  encodeNativeMessage,
+} from "./protocol.js";
 import { normalizeSupportedUrl } from "./url-policy.js";
 
 const OPEN_URL_MESSAGE = "openUrl";
@@ -37,7 +43,7 @@ export async function runNativeHost(options = {}) {
   let response;
 
   try {
-    const input = await readStream(stdin);
+    const input = await readNativeMessageFrame(stdin);
     response = await handleNativeMessage(decodeNativeMessage(input), { openUrl });
   } catch (error) {
     response = errorResponse(
@@ -63,17 +69,64 @@ function errorResponse(code, message) {
   };
 }
 
-function readStream(stream) {
+function readNativeMessageFrame(stream) {
   return new Promise((resolve, reject) => {
     const chunks = [];
+    let totalLength = 0;
+    let expectedLength = null;
+    let settled = false;
 
-    stream.on("data", (chunk) => {
+    const settle = (callback, value) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      stream.off("data", onData);
+      stream.off("error", onError);
+      stream.off("end", onEnd);
+      callback(value);
+    };
+
+    const currentBuffer = () => Buffer.concat(chunks, totalLength);
+
+    const onData = (chunk) => {
       chunks.push(Buffer.from(chunk));
-    });
-    stream.on("error", reject);
-    stream.on("end", () => {
-      resolve(Buffer.concat(chunks));
-    });
+      totalLength += chunk.length;
+
+      if (expectedLength === null && totalLength >= NATIVE_MESSAGE_HEADER_BYTES) {
+        const bodyLength = currentBuffer().readUInt32LE(0);
+
+        if (bodyLength > MAX_MESSAGE_BYTES) {
+          settle(reject, new NativeMessageError(
+            "message_too_large",
+            "Native message exceeds the 1 MB host limit.",
+          ));
+          return;
+        }
+
+        expectedLength = NATIVE_MESSAGE_HEADER_BYTES + bodyLength;
+      }
+
+      if (expectedLength !== null && totalLength >= expectedLength) {
+        settle(resolve, currentBuffer().subarray(0, expectedLength));
+      }
+    };
+
+    const onError = (error) => {
+      settle(reject, error);
+    };
+
+    const onEnd = () => {
+      settle(reject, new NativeMessageError(
+        totalLength < NATIVE_MESSAGE_HEADER_BYTES ? "incomplete_header" : "incomplete_body",
+        "Native message ended before a complete frame was available.",
+      ));
+    };
+
+    stream.on("data", onData);
+    stream.on("error", onError);
+    stream.on("end", onEnd);
   });
 }
 

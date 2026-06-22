@@ -49,3 +49,28 @@ test("runNativeHost writes one encoded response", async () => {
     url: "https://example.com/",
   });
 });
+
+test("runNativeHost responds after one complete frame without waiting for stdin end", async () => {
+  const stdin = new PassThrough();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  const output = new Promise((resolve) => {
+    stdout.once("data", (chunk) => resolve(Buffer.from(chunk)));
+  });
+  const runPromise = runNativeHost({
+    stdin,
+    stdout,
+    stderr,
+    openUrl: async () => {},
+  });
+
+  stdin.write(encodeNativeMessage({ type: "openUrl", url: "https://example.com/" }));
+
+  assert.deepEqual(decodeNativeMessage(await output), {
+    ok: true,
+    url: "https://example.com/",
+  });
+
+  await runPromise;
+  stdin.destroy();
+});
