@@ -14,6 +14,17 @@ npm test
 
 The extension is intended for local sideloading through `edge://extensions`.
 
+## Packaging
+
+```sh
+npm run package
+```
+
+This writes two ignored artifacts under `dist/`:
+
+- `edge-to-atlas-extension-v0.1.0.zip`: extension-only archive with `manifest.json` at the zip root.
+- `edge-to-atlas-release-v0.1.0.zip`: full local release bundle with the extension, native host, installer, docs, and package metadata.
+
 ## Local Install
 
 1. Open `edge://extensions`, enable Developer mode, and load the `extension/` directory as an unpacked extension.
