@@ -17,11 +17,12 @@ The extension is intended for local sideloading through `edge://extensions`.
 ## Local Install
 
 1. Open `edge://extensions`, enable Developer mode, and load the `extension/` directory as an unpacked extension.
-2. Copy the extension ID shown by Edge.
-3. Register the native messaging host:
+2. Register the native messaging host:
 
 ```sh
-npm run install:native-host -- --extension-id <edge-extension-id>
+npm run install:native-host
 ```
+
+The unpacked extension has a fixed development ID from the checked-in manifest key: `pocicjaeampgbnhkkkhdmnnehdgjfmgk`.
 
 After registration, clicking the extension action on an `http` or `https` page opens the same URL in ChatGPT Atlas.

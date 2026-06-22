@@ -4,6 +4,7 @@ import process from "node:process";
 import { installNativeHost, parseInstallArgs } from "./install-native-host-lib.js";
 
 const USAGE = `Usage:
+  npm run install:native-host
   npm run install:native-host -- --extension-id <edge-extension-id>
   node scripts/install-native-host.js <edge-extension-id>
 `;

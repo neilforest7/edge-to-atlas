@@ -1,4 +1,5 @@
-import { access, chmod, mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { access, chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -42,7 +43,6 @@ export function parseInstallArgs(argv) {
     throw new Error(`Unknown argument: ${arg}`);
   }
 
-  validateExtensionId(extensionId);
   return { extensionId, dryRun };
 }
 
@@ -58,10 +58,30 @@ export function getInstallPaths(options = {}) {
   const runnerPath = path.join(home, SUPPORT_RELATIVE_DIR, "edge-to-atlas-host");
 
   return {
+    extensionManifestPath: path.join(projectRoot, "extension", "manifest.json"),
     hostScriptPath: path.join(projectRoot, "native-host", "host.js"),
     manifestPath: path.join(home, EDGE_NATIVE_HOST_RELATIVE_DIR, `${HOST_NAME}.json`),
     runnerPath,
   };
+}
+
+export async function readExtensionIdFromManifest(manifestPath) {
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+
+  if (typeof manifest.key !== "string" || manifest.key.length === 0) {
+    throw new Error("extension/manifest.json must include a key or --extension-id must be provided.");
+  }
+
+  return extensionIdFromPublicKey(manifest.key);
+}
+
+export function extensionIdFromPublicKey(publicKeyBase64) {
+  const publicKey = Buffer.from(publicKeyBase64, "base64");
+  const digest = createHash("sha256").update(publicKey).digest().subarray(0, 16);
+
+  return [...digest.toString("hex")]
+    .map((char) => String.fromCharCode("a".charCodeAt(0) + Number.parseInt(char, 16)))
+    .join("");
 }
 
 export function buildNativeHostManifest({ extensionId, runnerPath }) {
@@ -81,12 +101,14 @@ export function renderRunner({ nodePath, hostScriptPath }) {
 }
 
 export async function installNativeHost(options) {
-  validateExtensionId(options.extensionId);
-
   const paths = getInstallPaths(options);
+  const extensionId = options.extensionId ?? await readExtensionIdFromManifest(paths.extensionManifestPath);
+
+  validateExtensionId(extensionId);
+
   const nodePath = options.nodePath ?? process.execPath;
   const manifest = buildNativeHostManifest({
-    extensionId: options.extensionId,
+    extensionId,
     runnerPath: paths.runnerPath,
   });
   const runner = renderRunner({
