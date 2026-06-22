@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Open in ChatGPT Atlas",
+  "name": "Open in Paired Browser",
   "version": "0.1.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt7kTpbYTPjgZi7Tq5Arlp0hY4mlVxrFrNIuwELXZdNEoZWcPcXoKdld2h4/bASVRUrDo/2dEgVTV8D5219a3RQwCD6vbZq2z84p8UwG/u+hNemy9LMjyEhjNisr5yz3Cp83wBIK1ZcbzCxW/E1e2tbxehu05MzrC2VJAVHKZRxpd0/mwqRWkk7X6FYlBfnJTz4YRFze1wpFsP+K2XsP/0qUvsH6j+r2LGXc93hwx9hEtDb9umA915V4alJDOt6Ri5Lwe2kQNErs53vEPJkhMoz95WAk2F13+K3ONnv3OfDsAu82TVr+QirKxeT7BqW9leIrVYOL6Yl/2dmX4bRGbYQIDAQAB",
-  "description": "Open the current Microsoft Edge tab in ChatGPT Atlas.",
+  "description": "Open the current tab in the paired Edge or ChatGPT Atlas browser.",
   "action": {
-    "default_title": "Open in ChatGPT Atlas"
+    "default_title": "Open in paired browser"
   },
   "background": {
     "service_worker": "background.js",

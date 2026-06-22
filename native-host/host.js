@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { pathToFileURL } from "node:url";
 
-import { openInAtlas } from "./atlas-opener.js";
+import { openInBrowser, resolveBrowserTarget } from "./browser-opener.js";
 import {
   MAX_MESSAGE_BYTES,
   NATIVE_MESSAGE_HEADER_BYTES,
@@ -14,21 +14,28 @@ import { normalizeSupportedUrl } from "./url-policy.js";
 const OPEN_URL_MESSAGE = "openUrl";
 
 export async function handleNativeMessage(message, options = {}) {
-  const openUrl = options.openUrl ?? openInAtlas;
+  const openUrl = options.openUrl ?? openInBrowser;
 
   if (!message || message.type !== OPEN_URL_MESSAGE) {
     return errorResponse("invalid_message", "Expected an openUrl message.");
   }
 
   const url = normalizeSupportedUrl(message.url);
+  const target = await resolveBrowserTarget(message.target, message.source, {
+    detectSourceBrowser: options.detectSourceBrowser,
+  });
 
   if (!url) {
-    return errorResponse("unsupported_url", "Only http and https URLs can be opened in ChatGPT Atlas.");
+    return errorResponse("unsupported_url", "Only http and https URLs can be opened.");
+  }
+
+  if (!target) {
+    return errorResponse("unsupported_target", "Expected target to be atlas, edge, or auto.");
   }
 
   try {
-    await openUrl(url);
-    return { ok: true, url };
+    await openUrl(url, target);
+    return { ok: true, target, url };
   } catch (error) {
     return errorResponse("open_failed", error instanceof Error ? error.message : String(error));
   }

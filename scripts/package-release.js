@@ -12,7 +12,7 @@ const packageJson = JSON.parse(await readFile(path.join(projectRoot, "package.js
 const distDir = path.join(projectRoot, "dist");
 const version = packageJson.version;
 
-const extensionArchive = `edge-to-atlas-extension-v${version}.zip`;
+const extensionArchive = `edge-atlas-bridge-extension-v${version}.zip`;
 const releaseArchive = `edge-to-atlas-release-v${version}.zip`;
 
 const extensionFiles = [

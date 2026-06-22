@@ -6,6 +6,8 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+  ATLAS_NATIVE_HOST_RELATIVE_DIR,
+  EDGE_NATIVE_HOST_RELATIVE_DIR,
   HOST_NAME,
   buildNativeHostManifest,
   extensionIdFromPublicKey,
@@ -35,14 +37,14 @@ test("parseInstallArgs accepts optional, flag, and positional extension IDs", ()
   });
 });
 
-test("parseInstallArgs rejects invalid extension IDs", () => {
+test("buildNativeHostManifest rejects invalid extension IDs", () => {
   assert.throws(() => buildNativeHostManifest({
     extensionId: "not-an-id",
     runnerPath: "/tmp/runner",
   }), /32-character/);
 });
 
-test("buildNativeHostManifest renders Edge native messaging metadata", () => {
+test("buildNativeHostManifest renders native messaging metadata", () => {
   assert.deepEqual(
     buildNativeHostManifest({
       extensionId: EXTENSION_ID,
@@ -50,7 +52,7 @@ test("buildNativeHostManifest renders Edge native messaging metadata", () => {
     }),
     {
       name: HOST_NAME,
-      description: "Open the current Microsoft Edge tab in ChatGPT Atlas.",
+      description: "Open the current browser tab in the paired browser.",
       path: "/Users/test/Library/Application Support/edge-to-atlas/edge-to-atlas-host",
       type: "stdio",
       allowed_origins: [`chrome-extension://${EXTENSION_ID}/`],
@@ -58,13 +60,23 @@ test("buildNativeHostManifest renders Edge native messaging metadata", () => {
   );
 });
 
-test("getInstallPaths defaults to the repository root, not process cwd", () => {
+test("getInstallPaths defaults to the repository root and both browser manifest dirs", () => {
   const paths = getInstallPaths({ home: "/Users/example" });
 
   assert.equal(
     paths.hostScriptPath,
     fileURLToPath(new URL("../native-host/host.js", import.meta.url)),
   );
+  assert.equal(paths.edgeManifestPath, path.join(
+    "/Users/example",
+    EDGE_NATIVE_HOST_RELATIVE_DIR,
+    `${HOST_NAME}.json`,
+  ));
+  assert.equal(paths.atlasManifestPath, path.join(
+    "/Users/example",
+    ATLAS_NATIVE_HOST_RELATIVE_DIR,
+    `${HOST_NAME}.json`,
+  ));
 });
 
 test("extensionIdFromPublicKey matches the checked-in manifest key", () => {
@@ -88,7 +100,7 @@ test("renderRunner shell-quotes Node and host paths", () => {
   );
 });
 
-test("installNativeHost writes user-level Edge manifest and executable runner", async () => {
+test("installNativeHost writes Edge and Atlas manifests with one executable runner", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "edge-to-atlas-"));
   const home = path.join(root, "home");
   const projectRoot = path.join(root, "project");
@@ -106,13 +118,17 @@ test("installNativeHost writes user-level Edge manifest and executable runner", 
     nodePath: "/usr/local/bin/node",
   });
 
-  const manifest = JSON.parse(await readFile(result.manifestPath, "utf8"));
+  const edgeManifest = JSON.parse(await readFile(result.edgeManifestPath, "utf8"));
+  const atlasManifest = JSON.parse(await readFile(result.atlasManifestPath, "utf8"));
   const runner = await readFile(result.runnerPath, "utf8");
   const runnerStat = await stat(result.runnerPath);
 
-  assert.equal(manifest.name, HOST_NAME);
-  assert.equal(manifest.path, result.runnerPath);
-  assert.deepEqual(manifest.allowed_origins, [`chrome-extension://${MANIFEST_EXTENSION_ID}/`]);
+  assert.equal(edgeManifest.name, HOST_NAME);
+  assert.equal(edgeManifest.path, result.runnerPath);
+  assert.deepEqual(edgeManifest.allowed_origins, [`chrome-extension://${MANIFEST_EXTENSION_ID}/`]);
+  assert.equal(atlasManifest.name, HOST_NAME);
+  assert.equal(atlasManifest.path, result.runnerPath);
+  assert.deepEqual(atlasManifest.allowed_origins, [`chrome-extension://${MANIFEST_EXTENSION_ID}/`]);
   assert.equal(runner, `#!/bin/sh\nexec '/usr/local/bin/node' '${hostScriptPath}' "$@"\n`);
   assert.equal((runnerStat.mode & 0o111) !== 0, true);
 });

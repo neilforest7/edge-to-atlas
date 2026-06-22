@@ -18,5 +18,5 @@ export function getUnsupportedUrlMessage(input) {
     return "No active tab URL was available.";
   }
 
-  return "Only http and https pages can be opened in ChatGPT Atlas.";
+  return "Only http and https pages can be opened in the paired browser.";
 }

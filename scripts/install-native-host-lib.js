@@ -12,6 +12,13 @@ export const EDGE_NATIVE_HOST_RELATIVE_DIR = path.join(
   "Microsoft Edge",
   "NativeMessagingHosts",
 );
+export const ATLAS_NATIVE_HOST_RELATIVE_DIR = path.join(
+  "Library",
+  "Application Support",
+  "OpenAI",
+  "ChatGPT Atlas",
+  "NativeMessagingHosts",
+);
 export const SUPPORT_RELATIVE_DIR = path.join("Library", "Application Support", "edge-to-atlas");
 
 const EXTENSION_ID_PATTERN = /^[a-p]{32}$/;
@@ -60,6 +67,8 @@ export function getInstallPaths(options = {}) {
   return {
     extensionManifestPath: path.join(projectRoot, "extension", "manifest.json"),
     hostScriptPath: path.join(projectRoot, "native-host", "host.js"),
+    atlasManifestPath: path.join(home, ATLAS_NATIVE_HOST_RELATIVE_DIR, `${HOST_NAME}.json`),
+    edgeManifestPath: path.join(home, EDGE_NATIVE_HOST_RELATIVE_DIR, `${HOST_NAME}.json`),
     manifestPath: path.join(home, EDGE_NATIVE_HOST_RELATIVE_DIR, `${HOST_NAME}.json`),
     runnerPath,
   };
@@ -89,7 +98,7 @@ export function buildNativeHostManifest({ extensionId, runnerPath }) {
 
   return {
     name: HOST_NAME,
-    description: "Open the current Microsoft Edge tab in ChatGPT Atlas.",
+    description: "Open the current browser tab in the paired browser.",
     path: runnerPath,
     type: "stdio",
     allowed_origins: [`chrome-extension://${extensionId}/`],
@@ -107,7 +116,11 @@ export async function installNativeHost(options) {
   validateExtensionId(extensionId);
 
   const nodePath = options.nodePath ?? process.execPath;
-  const manifest = buildNativeHostManifest({
+  const edgeManifest = buildNativeHostManifest({
+    extensionId,
+    runnerPath: paths.runnerPath,
+  });
+  const atlasManifest = buildNativeHostManifest({
     extensionId,
     runnerPath: paths.runnerPath,
   });
@@ -122,13 +135,20 @@ export async function installNativeHost(options) {
     await mkdir(path.dirname(paths.runnerPath), { recursive: true });
     await writeFile(paths.runnerPath, runner, "utf8");
     await chmod(paths.runnerPath, 0o755);
-    await mkdir(path.dirname(paths.manifestPath), { recursive: true });
-    await writeFile(paths.manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+    await mkdir(path.dirname(paths.edgeManifestPath), { recursive: true });
+    await writeFile(paths.edgeManifestPath, `${JSON.stringify(edgeManifest, null, 2)}\n`, "utf8");
+    await mkdir(path.dirname(paths.atlasManifestPath), { recursive: true });
+    await writeFile(paths.atlasManifestPath, `${JSON.stringify(atlasManifest, null, 2)}\n`, "utf8");
   }
 
   return {
     ...paths,
-    manifest,
+    edgeExtensionId: extensionId,
+    atlasExtensionId: extensionId,
+    extensionId,
+    edgeManifest,
+    atlasManifest,
+    manifest: edgeManifest,
     nodePath,
   };
 }

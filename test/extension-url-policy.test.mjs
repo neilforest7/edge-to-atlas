@@ -21,6 +21,6 @@ test("describes unsupported URL failures", () => {
   assert.equal(getUnsupportedUrlMessage(""), "No active tab URL was available.");
   assert.equal(
     getUnsupportedUrlMessage("edge://settings"),
-    "Only http and https pages can be opened in ChatGPT Atlas.",
+    "Only http and https pages can be opened in the paired browser.",
   );
 });
