@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Open the current Microsoft Edge tab in ChatGPT Atlas on macOS.",
   "scripts": {
+    "install:native-host": "node scripts/install-native-host.js",
     "test": "node --test"
   },
   "engines": {
