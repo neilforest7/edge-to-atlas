@@ -1,0 +1,13 @@
+{
+  "name": "edge-to-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Open the current Microsoft Edge tab in ChatGPT Atlas on macOS.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
