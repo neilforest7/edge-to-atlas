@@ -8,9 +8,12 @@ This repository is being built as a local development tool. The extension opens 
 
 ## Local Install
 
-1. In Edge, open `edge://extensions`, enable Developer mode, and load the `extension/` directory as an unpacked extension.
-2. In ChatGPT Atlas, open its extension manager, enable Developer mode, and load the same `extension/` directory as an unpacked extension.
-3. Register both native messaging host manifests:
+1. Download `edge-to-atlas-release-*.zip` from the latest GitHub Release:
+   <https://github.com/neilforest7/edge-to-atlas/releases/latest>
+2. Unzip the release package to a stable local folder.
+3. In Edge, open `edge://extensions`, enable Developer mode, and load the unzipped `extension/` directory as an unpacked extension.
+4. In ChatGPT Atlas, open its extension manager, enable Developer mode, and load the same unzipped `extension/` directory as an unpacked extension.
+5. From the unzipped release folder, register both native messaging host manifests:
 
 ```sh
 npm run install:native-host
@@ -23,10 +26,12 @@ After registration, clicking the extension in Edge opens the current `http` or `
 ## Development
 
 ```sh
+git clone https://github.com/neilforest7/edge-to-atlas.git
+cd edge-to-atlas
 npm test
 ```
 
-The extension is intended for local sideloading through `edge://extensions`.
+For source-based local development, load the repository `extension/` directory in both browsers, then run `npm run install:native-host` from the repository root.
 
 ## Packaging
 
