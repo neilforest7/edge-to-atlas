@@ -13,11 +13,13 @@ This repository is being built as a local development tool. The extension opens 
 2. Unzip the release package to a stable local folder.
 3. In Edge, open `edge://extensions`, enable Developer mode, and load the unzipped `extension/` directory as an unpacked extension.
 4. In ChatGPT Atlas, open its extension manager, enable Developer mode, and load the same unzipped `extension/` directory as an unpacked extension.
-5. From the unzipped release folder, register both native messaging host manifests:
+5. From the unzipped release folder, run the native host installer once:
 
 ```sh
 npm run install:native-host
 ```
+
+This installer writes the Edge and Atlas native messaging manifests under your macOS user profile. Run it again if you move the unzipped release folder, because the native host runner points back to that folder.
 
 The extension has fixed development ID `pocicjaeampgbnhkkkhdmnnehdgjfmgk` in both browsers.
 
